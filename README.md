@@ -8,7 +8,7 @@ Creating a bookshelf app that allows us to select and categorize books we have r
 * install all project dependencies with `npm install`
 * start the development server with `npm start`
 
-## What You're Getting
+## Project contains:
 ```bash
 
 ├── README.md - This file.
