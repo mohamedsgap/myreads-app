@@ -59,7 +59,7 @@ class BooksApp extends Component {
   });
 
   render() {
-    const { books, searchBooks } = this.state;
+    const { myBooks, searchBooks } = this.state;
     return (
       <div className="app">
         <Route
@@ -68,7 +68,7 @@ class BooksApp extends Component {
           render={() => (
             <ListBooks
               bookshelves={this.bookshelves}
-              books={books}
+              books={myBooks}
               onMove={this.moveBook}
             />
           )}
@@ -77,9 +77,11 @@ class BooksApp extends Component {
           path="/search"
           render={() => (
             <SearchBooks
-              books={searchBooks}
+              searchBooks={searchBooks}
+              myBooks={myBooks}
               onSearch={this.searchForBooks}
               onMove={this.moveBook}
+              onResetSearch={this.resetSearch}
             />
           )}
         />
@@ -203,12 +205,21 @@ class BookshelfChanger extends Component {
 
 class SearchBooks extends Component {
   render() {
-    const { books, onSearch } = this.props;
-    // console.log(books);
+    const {
+      searchBooks,
+      myBooks,
+      onSearch,
+      onResetSearch,
+      onMove,
+    } = this.props;
     return (
       <div className="search-books">
-        <SearchBar onSearch={onSearch} />
-        <SearchResults books={books} />
+        <SearchBar onSearch={onSearch} onResetSearch={onResetSearch} />
+        <SearchResults
+          searchBooks={searchBooks}
+          myBooks={myBooks}
+          onMove={onMove}
+        />
       </div>
     );
   }
@@ -260,15 +271,18 @@ class SearchBooksInput extends Component {
 }
 
 const SearchResults = props => {
-  const { books } = props;
+  const { searchBooks, myBooks, onMove } = props;
   return (
     <div className="search-books-results">
       <ol className="books-grid">
-        {books.map(book => (
-          <Book key={book.id} book={book} shelf="none" />
+        {searchBooks.map(book => (
+          <Book
+            key={book.id}
+            book={book}
+            shelf={book.shelf ? book.shelf : 'none'}
+            onMove={onMove}
+          />
         ))}
-
-        {/* <div>Books</div> */}
       </ol>
     </div>
   );
