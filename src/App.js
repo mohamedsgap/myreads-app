@@ -22,6 +22,7 @@ class BooksApp extends Component {
     searchBooks: [],
     error: false
   };
+  
   componentDidMount = () => {
     BooksAPI.getAll()
       .then(books => {
@@ -32,6 +33,7 @@ class BooksApp extends Component {
         this.setState({ error: true });
       });
   };
+
   moveBook = (book, shelf) => {
     BooksAPI.update(book, shelf).catch(err => {
       console.log(err);
@@ -48,7 +50,7 @@ class BooksApp extends Component {
       }));
     }
   };
-  
+
   searchForBooks = debounce(300, false, query => {
     // console.log(query);
     if (query.length > 0) {
