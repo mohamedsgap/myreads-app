@@ -7,20 +7,30 @@ import ListBooks from './ListBooks'
 import SearchBooks from './SearchBooks'
 
 
+ 
+
 class BooksApp extends Component {
+  
   bookshelves = [
     { key: 'currentlyReading', name: 'Currently Reading' },
     { key: 'wantToRead', name: 'Want to Read' },
     { key: 'read', name: 'Read' },
   ];
+
   state = {
     myBooks: [],
     searchBooks: [],
+    error: false
   };
   componentDidMount = () => {
-    BooksAPI.getAll().then(books => {
-      this.setState({ myBooks: books });
-    });
+    BooksAPI.getAll()
+      .then(books => {
+        this.setState({ myBooks: books });
+      })
+      .catch(err => {
+        console.log(err);
+        this.setState({ error: true });
+      });
   };
   moveBook = (book, shelf) => {
     // update db
@@ -62,7 +72,10 @@ class BooksApp extends Component {
   };
 
   render() {
-    const { myBooks, searchBooks } = this.state;
+    const { myBooks, searchBooks, error } = this.state;
+    if (error) {
+      return <div>Network error. Please try again later.</div>;
+    }
     return (
       <div className="app">
         <Route
