@@ -129,16 +129,30 @@ class BookshelfChanger extends React.Component {
   }
 }
 
-class BookSearch extends React.Component {
+class SearchBooks extends React.Component {
   render() {
+    const { books } = this.props;
     return (
       <div className="search-books">
         <SearchBar />
-        <SearchResults />
+        <SearchResults books={books} />
       </div>
     );
   }
 }
+
+const SearchResults = props => {
+  const { books } = props;
+  return (
+    <div className="search-books-results">
+      <ol className="books-grid">
+        {books.map(book => (
+          <Book key={book.id} book={book} shelf="none" />
+        ))}
+      </ol>
+    </div>
+  );
+};
 
 const SearchBar = props => {
   return (
@@ -167,15 +181,6 @@ class SearchBooksInput extends React.Component {
   }
 }
 
-const SearchResults = props => {
-  return (
-    <div className="search-books-results">
-      <ol className="books-grid">
-        <Book />
-      </ol>
-    </div>
-  );
-};
 
 
 export default BooksApp
