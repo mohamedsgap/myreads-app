@@ -49,13 +49,13 @@ class BooksApp extends React.Component{
 
 class ListBooks extends React.Component {
   render() {
-    const { bookshelves, books } = this.props;
+    const { bookshelves, books, onMove } = this.props;
     return (
       <div className="list-books">
         <div className="list-books-title">
           <h1>MyReads</h1>
         </div>
-        <Bookcase bookshelves={bookshelves} books={books} />
+        <Bookcase bookshelves={bookshelves} books={books} onMove={onMove} />
         <OpenSearchButton />
       </div>
     );
@@ -126,10 +126,17 @@ const Book = props => {
 };
 
 class BookshelfChanger extends React.Component {
+  state = {
+    value: this.props.shelf,
+  };
+  handleChange = event => {
+    this.setState({ value: event.target.value });
+    this.props.onMove(this.props.book, event.target.value);
+  };
   render() {
     return (
       <div className="book-shelf-changer">
-        <select value={this.props.shelf}>
+        <select value={this.state.value} onChange={this.handleChange}>
           <option value="move" disabled>
             Move to...
           </option>
