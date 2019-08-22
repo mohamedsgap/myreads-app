@@ -21,19 +21,19 @@ class BooksApp extends Component {
     });
   };
   moveBook = (book, shelf) => {
-    // BooksAPI.update(book, shelf);
-    BooksAPI.update(book, shelf).then(books => {
-      console.log(books);
-    });
-    const updatedBooks = this.state.books.map(b => {
-      if (b.id === book.id) {
-        b.shelf = shelf;
-      }
-      return b;
-    });
+    // update db
+    BooksAPI.update(book, shelf);
+
+    let updatedBooks = [];
+    updatedBooks = this.state.myBooks.filter(b => b.id !== book.id);
+
+    if (shelf !== 'none') {
+      book.shelf = shelf;
+      updatedBooks = updatedBooks.concat(book);
+    }
 
     this.setState({
-      books: updatedBooks,
+      myBooks: updatedBooks,
     });
   };
   // getBookshelfBooks = () => {
