@@ -3,6 +3,7 @@ import { Route, Link } from 'react-router-dom';
 import * as BooksAPI from './BooksAPI';
 import './App.css';
 //import getAll from './data';
+import { debounce } from 'throttle-debounce';
 
 class BooksApp extends Component {
   bookshelves = [
@@ -41,13 +42,21 @@ class BooksApp extends Component {
   //     this.setState({ books: books });
   //   });
   // };
-  searchForBooks = query => {
+  searchForBooks = debounce(300, false, query => {
     console.log(query);
-    BooksAPI.search(query).then(books => {
-      // console.log(books);
-      this.setState({ searchBooks: books });
-    });
-  };
+    if (query.length > 0) {
+      BooksAPI.search(query).then(books => {
+        console.log(books);
+        if (books.error) {
+          this.setState({ searchBooks: [] });
+        } else {
+          this.setState({ searchBooks: books });
+        }
+      });
+    } else {
+      this.setState({ searchBooks: [] });
+    }
+  });
 
   render() {
     const { books, searchBooks } = this.state;
