@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Route, Link } from 'react-router-dom';
+import { debounce } from 'throttle-debounce';
 import * as BooksAPI from './BooksAPI';
 import './App.css';
-//import getAll from './data';
-import { debounce } from 'throttle-debounce';
+// import getAll from './data';
 
 class BooksApp extends Component {
   bookshelves = [
@@ -12,17 +12,20 @@ class BooksApp extends Component {
     { key: 'read', name: 'Read' },
   ];
   state = {
-    books: [],
+    myBooks: [],
     searchBooks: [],
   };
   componentDidMount = () => {
     BooksAPI.getAll().then(books => {
-      this.setState({ books: books });
+      this.setState({ myBooks: books });
     });
   };
   moveBook = (book, shelf) => {
     // update db
     BooksAPI.update(book, shelf);
+    // BooksAPI.update(book, shelf).then(books => {
+    //   console.log(books);
+    // });
 
     let updatedBooks = [];
     updatedBooks = this.state.myBooks.filter(b => b.id !== book.id);
@@ -32,21 +35,16 @@ class BooksApp extends Component {
       updatedBooks = updatedBooks.concat(book);
     }
 
+    // console.log('updated books len', updatedBooks.length);
     this.setState({
       myBooks: updatedBooks,
     });
   };
-  // getBookshelfBooks = () => {
-  //   BooksAPI.getAll().then(books => {
-  //     console.log(books);
-  //     this.setState({ books: books });
-  //   });
-  // };
   searchForBooks = debounce(300, false, query => {
-    console.log(query);
+    // console.log(query);
     if (query.length > 0) {
       BooksAPI.search(query).then(books => {
-        console.log(books);
+        // console.log('result', books);
         if (books.error) {
           this.setState({ searchBooks: [] });
         } else {
@@ -57,6 +55,9 @@ class BooksApp extends Component {
       this.setState({ searchBooks: [] });
     }
   });
+  resetSearch = () => {
+    this.setState({ searchBooks: [] });
+  };
 
   render() {
     const { myBooks, searchBooks } = this.state;
@@ -108,7 +109,7 @@ class ListBooks extends Component {
 const OpenSearchButton = () => {
   return (
     <div className="open-search">
-      <Link to="Search">
+      <Link to="search">
         <button>Add a Book</button>
       </Link>
     </div>
@@ -212,6 +213,7 @@ class SearchBooks extends Component {
       onResetSearch,
       onMove,
     } = this.props;
+    // console.log(books);
     return (
       <div className="search-books">
         <SearchBar onSearch={onSearch} onResetSearch={onResetSearch} />
@@ -226,19 +228,22 @@ class SearchBooks extends Component {
 }
 
 const SearchBar = props => {
-  const { onSearch } = props;
+  const { onSearch, onResetSearch } = props;
   return (
     <div className="search-books-bar">
-      <CloseSearchButton />
+      <CloseSearchButton onResetSearch={onResetSearch} />
       <SearchBooksInput onSearch={onSearch} />
     </div>
   );
 };
 
-const CloseSearchButton = () => {
+const CloseSearchButton = props => {
+  const { onResetSearch } = props;
   return (
     <Link to="/">
-      <button className="close-search">Close</button>
+      <button className="close-search" onClick={onResetSearch}>
+        Close
+      </button>
     </Link>
   );
 };
@@ -248,23 +253,25 @@ class SearchBooksInput extends Component {
     value: '',
   };
   handleChange = event => {
-    this.setState({ value: event.target.value });
-  };
-  handleSubmit = e => {
-    e.preventDefault();
-    this.props.onSearch(this.state.value);
+    // this.setState({ value: event.target.value });
+    const val = event.target.value;
+    this.setState({ value: val }, () => {
+      // console.log(val);
+      // if (val.length >= 1) {
+      this.props.onSearch(val);
+      // }
+    });
   };
   render() {
     return (
       <div className="search-books-input-wrapper">
-        <form onSubmit={this.handleSubmit}>
-          <input
-            type="text"
-            value={this.state.value}
-            placeholder="Search by title or author"
-            onChange={this.handleChange}
-          />
-        </form>
+        <input
+          type="text"
+          value={this.state.value}
+          placeholder="Search by title or author"
+          onChange={this.handleChange}
+          autoFocus
+        />
       </div>
     );
   }
@@ -272,6 +279,7 @@ class SearchBooksInput extends Component {
 
 const SearchResults = props => {
   const { searchBooks, myBooks, onMove } = props;
+
   const updatedBooks = searchBooks.map(book => {
     myBooks.map(b => {
       if (b.id === book.id) {
