@@ -272,10 +272,19 @@ class SearchBooksInput extends Component {
 
 const SearchResults = props => {
   const { searchBooks, myBooks, onMove } = props;
+  const updatedBooks = searchBooks.map(book => {
+    myBooks.map(b => {
+      if (b.id === book.id) {
+        book.shelf = b.shelf;
+      }
+      return b;
+    });
+    return book;
+  });
   return (
     <div className="search-books-results">
       <ol className="books-grid">
-        {searchBooks.map(book => (
+        {updatedBooks.map(book => (
           <Book
             key={book.id}
             book={book}
