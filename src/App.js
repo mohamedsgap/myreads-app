@@ -33,25 +33,22 @@ class BooksApp extends Component {
       });
   };
   moveBook = (book, shelf) => {
-    // update db
-    BooksAPI.update(book, shelf);
-    // BooksAPI.update(book, shelf).then(books => {
-    //   console.log(books);
-    // });
-
-    let updatedBooks = [];
-    updatedBooks = this.state.myBooks.filter(b => b.id !== book.id);
-
-    if (shelf !== 'none') {
-      book.shelf = shelf;
-      updatedBooks = updatedBooks.concat(book);
-    }
-
-    // console.log('updated books len', updatedBooks.length);
-    this.setState({
-      myBooks: updatedBooks,
+    BooksAPI.update(book, shelf).catch(err => {
+      console.log(err);
+      this.setState({ error: true });
     });
+    if (shelf === 'none') {
+      this.setState(prevState => ({
+        myBooks: prevState.myBooks.filter(b => b.id !== book.id)
+      }));
+    } else {
+      book.shelf = shelf;
+      this.setState(prevState => ({
+        myBooks: prevState.myBooks.filter(b => b.id !== book.id).concat(book)
+      }));
+    }
   };
+  
   searchForBooks = debounce(300, false, query => {
     // console.log(query);
     if (query.length > 0) {
