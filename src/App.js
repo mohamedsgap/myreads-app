@@ -1,30 +1,26 @@
-import React from 'react'
-import * as BooksAPI from './BooksAPI'
-import { Route, Link } from 'react-router-dom'
-import './App.css'
-import getAll from './data';
+import React, { Component } from 'react';
+import { Route, Link } from 'react-router-dom';
+import * as BooksAPI from './BooksAPI';
+import './App.css';
+//import getAll from './data';
 
-
-class BooksApp extends React.Component{
-  
+class BooksApp extends Component {
   bookshelves = [
     { key: 'currentlyReading', name: 'Currently Reading' },
     { key: 'wantToRead', name: 'Want to Read' },
-    { key: 'read', name: 'Have Read' },
+    { key: 'read', name: 'Read' },
   ];
-
   state = {
-    books: getAll,
-   };
-
-
+    books: [],
+    searchBooks: [],
+  };
   componentDidMount = () => {
     BooksAPI.getAll().then(books => {
       this.setState({ books: books });
     });
-  }; 
-
+  };
   moveBook = (book, shelf) => {
+    // BooksAPI.update(book, shelf);
     BooksAPI.update(book, shelf).then(books => {
       console.log(books);
     });
@@ -39,25 +35,51 @@ class BooksApp extends React.Component{
       books: updatedBooks,
     });
   };
+  // getBookshelfBooks = () => {
+  //   BooksAPI.getAll().then(books => {
+  //     console.log(books);
+  //     this.setState({ books: books });
+  //   });
+  // };
+  searchForBooks = query => {
+    console.log(query);
+    BooksAPI.search(query).then(books => {
+      // console.log(books);
+      this.setState({ searchBooks: books });
+    });
+  };
 
-   render() {
-    const { books } = this.state;
+  render() {
+    const { books, searchBooks } = this.state;
     return (
       <div className="app">
         <Route
           exact
           path="/"
           render={() => (
-            <ListBooks bookshelves={this.bookshelves} books={books} />
+            <ListBooks
+              bookshelves={this.bookshelves}
+              books={books}
+              onMove={this.moveBook}
+            />
           )}
         />
-        <Route path="/search" render={() => <SearchBooks books={books} />} />
+        <Route
+          path="/search"
+          render={() => (
+            <SearchBooks
+              books={searchBooks}
+              onSearch={this.searchForBooks}
+              onMove={this.moveBook}
+            />
+          )}
+        />
       </div>
     );
   }
 }
 
-class ListBooks extends React.Component {
+class ListBooks extends Component {
   render() {
     const { bookshelves, books, onMove } = this.props;
     return (
@@ -75,7 +97,7 @@ class ListBooks extends React.Component {
 const OpenSearchButton = () => {
   return (
     <div className="open-search">
-      <Link to="search">
+      <Link to="Search">
         <button>Add a Book</button>
       </Link>
     </div>
@@ -83,12 +105,17 @@ const OpenSearchButton = () => {
 };
 
 const Bookcase = props => {
-  const { bookshelves, books } = props;
+  const { bookshelves, books, onMove } = props;
   return (
     <div className="list-books-content">
       <div>
         {bookshelves.map(shelf => (
-          <Bookshelf key={shelf.key} shelf={shelf} books={books} />
+          <Bookshelf
+            key={shelf.key}
+            shelf={shelf}
+            books={books}
+            onMove={onMove}
+          />
         ))}
       </div>
     </div>
@@ -96,15 +123,16 @@ const Bookcase = props => {
 };
 
 const Bookshelf = props => {
-  const { shelf, books } = props;
+  const { shelf, books, onMove } = props;
   const booksOnThisShelf = books.filter(book => book.shelf === shelf.key);
+  // console.log('booksOnThisShelf', booksOnThisShelf);
   return (
     <div className="bookshelf">
       <h2 className="bookshelf-title">{shelf.name}</h2>
       <div className="bookshelf-books">
         <ol className="books-grid">
           {booksOnThisShelf.map(book => (
-            <Book key={book.id} book={book} shelf={shelf.key} />
+            <Book key={book.id} book={book} shelf={shelf.key} onMove={onMove} />
           ))}
         </ol>
       </div>
@@ -113,7 +141,7 @@ const Bookshelf = props => {
 };
 
 const Book = props => {
-  const { book, shelf } = props;
+  const { book, shelf, onMove } = props;
   return (
     <li>
       <div className="book">
@@ -126,7 +154,7 @@ const Book = props => {
               backgroundImage: `url(${book.imageLinks.thumbnail})`,
             }}
           />
-          <BookshelfChanger book={book} shelf={shelf} />
+          <BookshelfChanger book={book} shelf={shelf} onMove={onMove} />
         </div>
         <div className="book-title">{book.title}</div>
         <div className="book-authors">{book.authors.join(', ')}</div>
@@ -135,7 +163,7 @@ const Book = props => {
   );
 };
 
-class BookshelfChanger extends React.Component {
+class BookshelfChanger extends Component {
   state = {
     value: this.props.shelf,
   };
@@ -144,6 +172,7 @@ class BookshelfChanger extends React.Component {
     this.props.onMove(this.props.book, event.target.value);
   };
   render() {
+    // console.log(this.props.shelf);
     return (
       <div className="book-shelf-changer">
         <select value={this.state.value} onChange={this.handleChange}>
@@ -160,13 +189,59 @@ class BookshelfChanger extends React.Component {
   }
 }
 
-class SearchBooks extends React.Component {
+class SearchBooks extends Component {
   render() {
-    const { books } = this.props;
+    const { books, onSearch } = this.props;
+    // console.log(books);
     return (
       <div className="search-books">
-        <SearchBar />
+        <SearchBar onSearch={onSearch} />
         <SearchResults books={books} />
+      </div>
+    );
+  }
+}
+
+const SearchBar = props => {
+  const { onSearch } = props;
+  return (
+    <div className="search-books-bar">
+      <CloseSearchButton />
+      <SearchBooksInput onSearch={onSearch} />
+    </div>
+  );
+};
+
+const CloseSearchButton = () => {
+  return (
+    <Link to="/">
+      <button className="close-search">Close</button>
+    </Link>
+  );
+};
+
+class SearchBooksInput extends Component {
+  state = {
+    value: '',
+  };
+  handleChange = event => {
+    this.setState({ value: event.target.value });
+  };
+  handleSubmit = e => {
+    e.preventDefault();
+    this.props.onSearch(this.state.value);
+  };
+  render() {
+    return (
+      <div className="search-books-input-wrapper">
+        <form onSubmit={this.handleSubmit}>
+          <input
+            type="text"
+            value={this.state.value}
+            placeholder="Search by title or author"
+            onChange={this.handleChange}
+          />
+        </form>
       </div>
     );
   }
@@ -180,38 +255,11 @@ const SearchResults = props => {
         {books.map(book => (
           <Book key={book.id} book={book} shelf="none" />
         ))}
+
+        {/* <div>Books</div> */}
       </ol>
     </div>
   );
 };
 
-const SearchBar = props => {
-  return (
-    <div className="search-books-bar">
-      <CloseSearchButton />
-      <SearchBooksInput />
-    </div>
-  );
-};
-
-const CloseSearchButton = () => {
-  return (
-    <Link to="/">
-      <button className="close-search">Close</button>
-    </Link>
-  );
-};
-
-class SearchBooksInput extends React.Component {
-  render() {
-    return (
-      <div className="search-books-input-wrapper">
-        <input type="text" placeholder="Search by title or author" />
-      </div>
-    );
-  }
-}
-
-
-
-export default BooksApp
+export default BooksApp;
