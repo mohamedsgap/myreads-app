@@ -17,7 +17,7 @@ class BooksApp extends React.Component{
     books: getAll,
    };
 
-  moveBook = (book, shelf) => {
+   moveBook = (book, shelf) => {
     const updatedBooks = this.state.books.map(b => {
           if (b.id === book.id) {
             b.shelf = shelf;
