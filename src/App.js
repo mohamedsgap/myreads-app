@@ -89,7 +89,7 @@ class BooksApp extends Component {
           )}
         />
         <Route
-          path="/search"
+          exact path='/'
           render={() => (
             <SearchBooks
               searchBooks={searchBooks}
